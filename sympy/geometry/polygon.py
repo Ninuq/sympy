@@ -733,36 +733,28 @@ class Polygon(GeometrySet):
 
         """
         p = Point(p, dim=2)
-        if p in self.vertices or any(p in s for s in self.sides):
-            return False
-
+        if self.check_on_boundry(p): return False
         # move to p, checking that the result is numeric
         lit = []
         for v in self.vertices:
             lit.append(v - p)  # the difference is simplified
             if lit[-1].free_symbols:
                 return None
-
         poly = Polygon(*lit)
-
         # polygon closure is assumed in the following test but Polygon removes duplicate pts so
         # the last point has to be added so all sides are computed. Using Polygon.sides is
         # not good since Segments are unordered.
         args = poly.args
         indices = list(range(-len(args), 1))
-
-        if poly.is_convex():
-            orientation = None
-            for i in indices:
-                a = args[i]
-                b = args[i + 1]
-                test = ((-a.y)*(b.x - a.x) - (-a.x)*(b.y - a.y)).is_negative
-                if orientation is None:
-                    orientation = test
-                elif test is not orientation:
-                    return False
+        chec2  = self.sub_poly(poly,indices,args)
+        if not chec2 and chec2 != None:
+            return False
+        elif chec2:
             return True
 
+        return self.sub_checker(indices,args)
+
+    def sub_checker(self,indices,args):
         hit_odd = False
         p1x, p1y = args[0].args
         for i in indices[1:]:
@@ -776,6 +768,26 @@ class Polygon(GeometrySet):
                                 hit_odd = not hit_odd
             p1x, p1y = p2x, p2y
         return hit_odd
+
+    def check_on_boundry(self,p):
+        if p in self.vertices or any(p in s for s in self.sides):
+            return True
+        else:
+            return None
+
+    def sub_poly(self,poly,indices,args):
+        if poly.is_convex():
+            orientation = None
+            for i in indices:
+                a = args[i]
+                b = args[i + 1]
+                test = ((-a.y)*(b.x - a.x) - (-a.x)*(b.y - a.y)).is_negative
+                if orientation is None:
+                    orientation = test
+                elif test is not orientation:
+                    return False
+            return True
+        return None
 
     def arbitrary_point(self, parameter='t'):
         """A parameterized point on the polygon.
