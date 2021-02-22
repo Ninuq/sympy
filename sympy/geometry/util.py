@@ -72,42 +72,65 @@ def are_coplanar(*e):
 
     e = set(e)
     # first work with a Plane if present
+
+    branches = {0}
+    total_branches = [0,0,0,0,0,0,0,0,0,0,0,0]
+    branches.add(1)
+
     for i in list(e):
         if isinstance(i, Plane):
+            branches.add(2)
             e.remove(i)
             return all(p.is_coplanar(i) for p in e)
 
     if all(isinstance(i, Point3D) for i in e):
+        branches.add(3)
         if len(e) < 3:
+            # --- NOT REACHED ---
+            branches.add(4)
             return False
 
         # remove pts that are collinear with 2 pts
         a, b = e.pop(), e.pop()
         for i in list(e):
             if Point3D.are_collinear(a, b, i):
+                # --- NOT REACHED ---
+                branches.add(5)
                 e.remove(i)
 
         if not e:
+            # --- NOT REACHED ---
+            branches.add(6)
             return False
         else:
             # define a plane
             p = Plane(a, b, e.pop())
             for i in e:
                 if i not in p:
+                    branches.add(7)
                     return False
             return True
     else:
         pt3d = []
         for i in e:
             if isinstance(i, Point3D):
+                branches.add(8)
                 pt3d.append(i)
             elif isinstance(i, LinearEntity3D):
+                branches.add(9)
                 pt3d.extend(i.args)
             elif isinstance(i, GeometryEntity):  # XXX we should have a GeometryEntity3D class so we can tell the difference between 2D and 3D -- here we just want to deal with 2D objects; if new 3D objects are encountered that we didn't handle above, an error should be raised
                 # all 2D objects have some Point that defines them; so convert those points to 3D pts by making z=0
+                branches.add(10)
                 for p in i.args:
                     if isinstance(p, Point):
+                        branches.add(11)
                         pt3d.append(Point3D(*(p.args + (0,))))
+        for x in branches:
+            total_branches[x] = x
+
+        print(total_branches)
+
         return are_coplanar(*pt3d)
 
 
