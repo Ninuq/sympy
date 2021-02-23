@@ -23,6 +23,7 @@ def test_injection():
 
 
 def test_maxima_functions():
+    assert parse_maxima('limit(-x^x/(x-1),x,minf)') is oo
     assert parse_maxima('expand( (x+1)^2)') == x**2 + 2*x + 1
     assert parse_maxima('factor( x**2 + 2*x + 1)') == (x + 1)**2
     assert parse_maxima('2*cos(x)^2 + sin(x)^2') == 2*cos(x)**2 + sin(x)**2
