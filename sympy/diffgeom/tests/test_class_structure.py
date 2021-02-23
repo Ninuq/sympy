@@ -12,11 +12,14 @@ s1, s2 = cs.coord_functions()
 v1, v2 = cs.base_vectors()
 f1, f2 = cs.base_oneforms()
 
+
+#Added the last two assertions for enhanced tests
 def test_point():
     point = Point(cs, [x, y])
     assert point != Point(cs, [2, y])
-    #TODO assert point.subs(x, 2) == Point(cs, [2, y])
-    #TODO assert point.free_symbols == set([x, y])
+    #The following assertions were lacking for the and they had commented on it
+    assert point.subs(x, 2) == Point(cs, [2, y])
+    assert point.free_symbols == set([x, y])
 
 def test_subs():
     assert s1.subs(s1, s2) == s2
