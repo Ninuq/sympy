@@ -1,5 +1,5 @@
 from sympy.core.add import Add
-from sympy.core.kind import NumberKind, UndefinedKind
+from sympy.core.kind import NumberKind, UndefinedKind, BooleanKind
 from sympy.core.mul import Mul
 from sympy.core.numbers import pi, zoo, I, AlgebraicNumber
 from sympy.core.singleton import S
@@ -18,6 +18,13 @@ def test_NumberKind():
     assert zoo.kind is NumberKind
     assert I.kind is NumberKind
     assert AlgebraicNumber(1).kind is NumberKind
+
+#Added test for the boolean kind which was lacking
+#It tests if S (SingletonRegistry) has kinds that are BooleanKind and if they match with the
+# correct ones 
+def test_boolean_kind():
+    assert S.true.kind is BooleanKind
+    assert S.false.kind is BooleanKind
 
 def test_Add_kind():
     assert Add(2, 3, evaluate=False).kind is NumberKind
