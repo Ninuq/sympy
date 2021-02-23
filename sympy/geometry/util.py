@@ -152,7 +152,6 @@ def are_coplanar(*e):
         for x in branches:
             total_branches[x] = x
 
-        #print("e:",e, total_branches,"\n")
         print(total_branches)
 
         return are_coplanar(*pt3d)
