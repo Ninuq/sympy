@@ -4,16 +4,16 @@
 import sys
 
 
-from sympy.core import Symbol, Function, Float, Rational, Integer, I, Mul, Pow, Eq
+from sympy.core import Symbol, Function, Float, Rational, Integer, I, Mul, Pow, Eq, Lambda
 from sympy.functions import exp, factorial, factorial2, sin
 from sympy.logic import And
 from sympy.series import Limit
 from sympy.testing.pytest import raises, skip
-
+from sympy.abc import x
 from sympy.parsing.sympy_parser import (
     parse_expr, standard_transformations, rationalize, TokenError,
     split_symbols, implicit_multiplication, convert_equals_signs,
-    convert_xor, function_exponentiation,
+    convert_xor, function_exponentiation, lambda_notation,
     implicit_multiplication_application,
     )
 
@@ -147,6 +147,7 @@ def test_global_dict():
 
 
 def test_issue_2515():
+    raises(TokenError, lambda: parse_expr('())'))
     raises(TokenError, lambda: parse_expr('(()'))
     raises(TokenError, lambda: parse_expr('"""'))
 
@@ -207,11 +208,13 @@ def test_functional_exponent():
     y = Symbol('y')
     a = Symbol('a')
     yfcn = Function('y')
+    
     assert parse_expr("sin^2(x)", transformations=t) == (sin(x))**2
     assert parse_expr("sin^y(x)", transformations=t) == (sin(x))**y
     assert parse_expr("exp^y(x)", transformations=t) == (exp(x))**y
     assert parse_expr("E^y(x)", transformations=t) == exp(yfcn(x))
     assert parse_expr("a^y(x)", transformations=t) == a**(yfcn(x))
+    
 
 
 def test_match_parentheses_implicit_multiplication():
@@ -219,12 +222,21 @@ def test_match_parentheses_implicit_multiplication():
                       (implicit_multiplication,)
     raises(TokenError, lambda: parse_expr('(1,2),(3,4]',transformations=transformations))
 
+def test_lambda_notation():
+    transformations = standard_transformations + \
+                        (lambda_notation, )
+    y = Lambda(x,x+1)
+    assert parse_expr("lambda x:1+x", transformations=transformations) ==  y
+    raises(TokenError, lambda: parse_expr("lambda *x:1*x", transformations=transformations))
+
 
 def test_convert_equals_signs():
     transformations = standard_transformations + \
                         (convert_equals_signs, )
     x = Symbol('x')
     y = Symbol('y')
+    
+    
     assert parse_expr("1*2=x", transformations=transformations) == Eq(2, x)
     assert parse_expr("y = x", transformations=transformations) == Eq(y, x)
     assert parse_expr("(2*y = x) = False",
