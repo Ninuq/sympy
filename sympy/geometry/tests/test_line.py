@@ -489,6 +489,11 @@ def test_intersection_2d():
     assert intersection(Segment(Point(-10, 10), Point(10, 10)), Segment(Point(-5, -5), Point(-5, 5))) == []
     assert intersection(r2, l3) == [r2]
     assert intersection(r1, Ray(Point(2, 2), Point(0, 0))) == [Segment(Point(1, 1), Point(2, 2))]
+
+    # add the new tests
+    assert intersection(r1, Ray(Point(0, 0), Point(-1, -1))) == []
+    assert intersection(r1, Segment(Point(0, 0), Point(-1, -1))) == []
+
     assert intersection(r1, Ray(Point(1, 1), Point(-1, -1))) == [Point(1, 1)]
     assert intersection(r1, Segment(Point(0, 0), Point(2, 2))) == [Segment(Point(1, 1), Point(2, 2))]
 
