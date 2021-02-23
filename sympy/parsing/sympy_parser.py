@@ -339,7 +339,7 @@ def _implicit_application(tokens, local_dict, global_dict):
         branches.add(23)
     for x in branches:
         total_branches[x] = x
-    print(total_branches)
+    #print(total_branches)
     return result
 
 
@@ -362,7 +362,7 @@ def function_exponentiation(tokens, local_dict, global_dict):
     exponent = []
     consuming_exponent = False
     level = 0
-    
+
     for tok, nextTok in zip(tokens, tokens[1:]):
         branches.add(2)
         if tok[0] == NAME and nextTok[0] == OP and nextTok[1] == '**':
@@ -431,7 +431,7 @@ def function_exponentiation(tokens, local_dict, global_dict):
     branches.add(25)
     for x in branches:
         total_branches[x] = x
-    print(total_branches)
+    #print(total_branches)
     return result
 
 
@@ -668,7 +668,7 @@ def auto_symbol(tokens, local_dict, global_dict):
     branches.add(12)
     for x in branches:
         total_branches[x] = x
-    print(total_branches)
+    #print(total_branches)
     return result
 
 

@@ -79,8 +79,14 @@ def are_coplanar(*e):
 
     for i in list(e):
         if isinstance(i, Plane):
+            # --- NOT REACHED ---
             branches.add(2)
             e.remove(i)
+
+            for x in branches:
+                total_branches[x] = x
+            print(total_branches)
+
             return all(p.is_coplanar(i) for p in e)
 
     if all(isinstance(i, Point3D) for i in e):
@@ -88,6 +94,11 @@ def are_coplanar(*e):
         if len(e) < 3:
             # --- NOT REACHED ---
             branches.add(4)
+
+            for x in branches:
+                total_branches[x] = x
+            print(total_branches)
+
             return False
 
         # remove pts that are collinear with 2 pts
@@ -101,19 +112,31 @@ def are_coplanar(*e):
         if not e:
             # --- NOT REACHED ---
             branches.add(6)
+
+            for x in branches:
+                total_branches[x] = x
+            print(total_branches)
             return False
         else:
             # define a plane
             p = Plane(a, b, e.pop())
             for i in e:
                 if i not in p:
+                    # --- NOT REACHED ---
                     branches.add(7)
+                    for x in branches:
+                        total_branches[x] = x
+                    print(total_branches)
                     return False
+            for x in branches:
+                total_branches[x] = x
+            print(total_branches)
             return True
     else:
         pt3d = []
         for i in e:
             if isinstance(i, Point3D):
+                # --- NOT REACHED ---
                 branches.add(8)
                 pt3d.append(i)
             elif isinstance(i, LinearEntity3D):
@@ -129,6 +152,7 @@ def are_coplanar(*e):
         for x in branches:
             total_branches[x] = x
 
+        #print("e:",e, total_branches,"\n")
         print(total_branches)
 
         return are_coplanar(*pt3d)
