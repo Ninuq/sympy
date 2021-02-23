@@ -77,6 +77,11 @@ def _add_factorial_tokens(name, result):
 
     return result
 
+def _token_analyzer(token_zero,result_zero, token_one=True,result_one=True,token_two=True,result_two=True):
+    """
+    Analyze each token with its corresponding result
+    """
+    return token_zero == result_zero and token_one == result_one and token_two == result_two
 
 class AppliedFunction:
     """
@@ -213,22 +218,22 @@ def _implicit_multiplication(tokens, local_dict, global_dict):
         if (isinstance(tok, AppliedFunction) and
               isinstance(nextTok, AppliedFunction)):
             result.append((OP, '*'))
-        elif (isinstance(tok, AppliedFunction) and
-              nextTok[0] == OP and nextTok[1] == '('):
+        elif (isinstance(tok, AppliedFunction) and 
+              _token_analyzer(nextTok[0], OP, nextTok[1]== '(')):
             # Applied function followed by an open parenthesis
             if tok.function[1] == "Function":
                 result[-1].function = (result[-1].function[0], 'Symbol')
             result.append((OP, '*'))
-        elif (tok[0] == OP and tok[1] == ')' and
+        elif (_token_analyzer(tok[0], OP, tok[1],  ')') and
               isinstance(nextTok, AppliedFunction)):
             # Close parenthesis followed by an applied function
             result.append((OP, '*'))
-        elif (tok[0] == OP and tok[1] == ')' and
+        elif (_token_analyzer(tok[0], OP, tok[1],  ')') and
               nextTok[0] == NAME):
             # Close parenthesis followed by an implicitly applied function
             result.append((OP, '*'))
-        elif (tok[0] == nextTok[0] == OP
-              and tok[1] == ')' and nextTok[1] == '('):
+        elif (tok[0] == nextTok[0] == OP and
+              _token_analyzer(tok[1], ')', nextTok[1],  '(')):
             # Close parenthesis followed by an open parenthesis
             result.append((OP, '*'))
         elif (isinstance(tok, AppliedFunction) and nextTok[0] == NAME):
@@ -236,12 +241,11 @@ def _implicit_multiplication(tokens, local_dict, global_dict):
             result.append((OP, '*'))
         elif (tok[0] == NAME and
               not _token_callable(tok, local_dict, global_dict) and
-              nextTok[0] == OP and nextTok[1] == '('):
+              _token_analyzer(nextTok[0],OP,nextTok[1],'(')):
             # Constant followed by parenthesis
             result.append((OP, '*'))
-        elif (tok[0] == NAME and
+        elif (_token_analyzer(tok[0],NAME,nextTok[0],NAME) and
               not _token_callable(tok, local_dict, global_dict) and
-              nextTok[0] == NAME and
               not _token_callable(nextTok, local_dict, global_dict)):
             # Constant followed by constant
             result.append((OP, '*'))
@@ -257,89 +261,65 @@ def _implicit_multiplication(tokens, local_dict, global_dict):
 
 def _implicit_application(tokens, local_dict, global_dict):
     """Adds parentheses as needed after functions."""
-    branches = {0}
-    total_branches =[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     result = []
     appendParen = 0  # number of closing parentheses to add
     skip = 0  # number of tokens to delay before adding a ')' (to
               # capture **, ^, etc.)
     exponentSkip = False  # skipping tokens before inserting parentheses to
                           # work with function exponentiation
-    branches.add(1)
     for tok, nextTok in zip(tokens, tokens[1:]):
         result.append(tok)
-        if (tok[0] == NAME and nextTok[0] not in [OP, ENDMARKER, NEWLINE]):
-            branches.add(2)
+        if (tok[0] == NAME and not nextTok[0] in [OP, ENDMARKER, NEWLINE]):
+
             if _token_callable(tok, local_dict, global_dict, nextTok):
-                branches.add(3)
+  
                 result.append((OP, '('))
                 appendParen += 1
-            else:
-                branches.add(4)
+               
         # name followed by exponent - function exponentiation
-        elif (tok[0] == NAME and nextTok[0] == OP and nextTok[1] == '**'):
-            branches.add(5)
+        elif (_token_analyzer(tok[0],NAME,nextTok[0],OP,nextTok[1],'**')):
             if _token_callable(tok, local_dict, global_dict):
-                branches.add(6)
+  
                 exponentSkip = True
-            else:
-                branches.add(7)
         elif exponentSkip:
-            branches.add(8)
             # if the last token added was an applied function (i.e. the
             # power of the function exponent) OR a multiplication (as
             # implicit multiplication would have added an extraneous
             # multiplication)
             if (isinstance(tok, AppliedFunction)
-                or (tok[0] == OP and tok[1] == '*')):
-                branches.add(9)
+            
+                or _token_analyzer(tok[0],OP,tok[1],'*')):
                 # don't add anything if the next token is a multiplication
                 # or if there's already a parenthesis (if parenthesis, still
                 # stop skipping tokens)
-                if not (nextTok[0] == OP and nextTok[1] == '*'):
-                    branches.add(10)
-                    if not(nextTok[0] == OP and nextTok[1] == '('):
-                        branches.add(11)
+                if not (_token_analyzer(nextTok[0],OP,nextTok[1],'*')):
+
+                    
+                    if not(_token_analyzer(nextTok[0],OP,nextTok[1],'(')):
                         result.append((OP, '('))
                         appendParen += 1
-                    else:
-                        branches.add(12)
                     exponentSkip = False
-                else:
-                    branches.add(13)
         elif appendParen:
-            branches.add(14)
+    
             if nextTok[0] == OP and nextTok[1] in ('^', '**', '*'):
                 skip = 1
-                branches.add(15)
                 continue
-            else:
-                branches.add(16)
             if skip:
-                branches.add(17)
+
                 skip -= 1
                 continue
-            else:
-                branches.add(18)
+    
             result.append((OP, ')'))
             appendParen -= 1
-        else:
-            branches.add(19)
 
     if tokens:
-        branches.add(20)
+    
         result.append(tokens[-1])
-    else:
-        branches.add(21)
 
     if appendParen:
-        branches.add(22)
+   
         result.extend([(OP, ')')] * appendParen)
-    else:
-        branches.add(23)
-    for x in branches:
-        total_branches[x] = x
-    print(total_branches)
+    
     return result
 
 
@@ -355,83 +335,63 @@ def function_exponentiation(tokens, local_dict, global_dict):
     >>> parse_expr('sin**4(x)', transformations=transformations)
     sin(x)**4
     """
-    branches = {0}
-    branches.add(1)
-    total_branches = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     result = []
     exponent = []
     consuming_exponent = False
     level = 0
     
     for tok, nextTok in zip(tokens, tokens[1:]):
-        branches.add(2)
-        if tok[0] == NAME and nextTok[0] == OP and nextTok[1] == '**':
-            branches.add(3)
+        
+        if _token_analyzer(tok[0],NAME,nextTok[0],OP,nextTok[1],'**'):
             if _token_callable(tok, local_dict, global_dict):
-                branches.add(4)
                 consuming_exponent = True
+
         elif consuming_exponent:
-            branches.add(5)
-            if tok[0] == NAME and tok[1] == 'Function':
-                branches.add(6)
+           
+            if _token_analyzer(tok[0],NAME,tok[1],'Function'):
+              
                 tok = (NAME, 'Symbol')
-            else:
-                branches.add(7)
             exponent.append(tok)
 
             # only want to stop after hitting )
-            if tok[0] == nextTok[0] == OP and tok[1] == ')' and nextTok[1] == '(':
-                branches.add(8)
+            if tok[0] == nextTok[0] == OP and _token_analyzer(tok[1],')',nextTok[1],'('):
+           
+             
                 consuming_exponent = False
-            else:
-                branches.add(9)
+
             # if implicit multiplication was used, we may have )*( instead
-            if tok[0] == nextTok[0] == OP and tok[1] == '*' and nextTok[1] == '(':
-                branches.add(10)
+            
+            if tok[0] == nextTok[0] == OP and _token_analyzer(tok[1],'*',nextTok[1],'('):
+         
+            
                 consuming_exponent = False
                 del exponent[-1]
-            else:
-                branches.add(11)
             continue
         elif exponent and not consuming_exponent:
-            branches.add(12)
+
+            
             if tok[0] == OP:
-                branches.add(13)
+              
+            
                 if tok[1] == '(':
-                    branches.add(14)
+         
                     level += 1
                 elif tok[1] == ')':
-                    branches.add(15)
+                 
+                  
                     level -= 1
-                else:
-                    branches.add(16)
-            else:
-                branches.add(17)
             if level == 0:
-                branches.add(18)
+                
                 result.append(tok)
                 result.extend(exponent)
                 exponent = []
                 continue
-            else:
-                branches.add(19)
-        else:
-            branches.add(20)
         result.append(tok)
     if tokens:
-        branches.add(21)
+        
         result.append(tokens[-1])
-    else:
-        branches.add(22)
     if exponent:
-        branches.add(23)
         result.extend(exponent)
-    else:
-        branches.add(24)
-    branches.add(25)
-    for x in branches:
-        total_branches[x] = x
-    print(total_branches)
     return result
 
 
@@ -609,50 +569,44 @@ def auto_symbol(tokens, local_dict, global_dict):
     """Inserts calls to ``Symbol``/``Function`` for undefined variables."""
     result = []
     prevTok = (None, None)
-    branches = {0}
-    total_branches = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-    branches.add(1)
+
     tokens.append((None, None))  # so zip traverses all tokens
     for tok, nextTok in zip(tokens, tokens[1:]):
-        branches.add(2)
+       
         tokNum, tokVal = tok
         nextTokNum, nextTokVal = nextTok
         if tokNum == NAME:
-            branches.add(3)
+           
             name = tokVal
 
             if (name in ['True', 'False', 'None']
                 or iskeyword(name)
                 # Don't convert attribute access
-                or (prevTok[0] == OP and prevTok[1] == '.')
+                or (_token_analyzer(prevTok[0],OP,prevTok[1],'.'))
                 # Don't convert keyword arguments
                 or (prevTok[0] == OP and prevTok[1] in ('(', ',')
-                    and nextTokNum == OP and nextTokVal == '=')):
-                branches.add(4)
+                    and _token_analyzer(nextTokNum,OP,nextTokVal,'='))):
+              
                 result.append((NAME, name))
                 continue
             elif name in local_dict:
                 if isinstance(local_dict[name], Symbol) and nextTokVal == '(':
-                    branches.add(5)
+                   
                     result.extend([(NAME, 'Function'),
                                    (OP, '('),
                                    (NAME, repr(str(local_dict[name]))),
                                    (OP, ')')])
                 else:
-                    branches.add(6)
+                 
                     result.append((NAME, name))
                 continue
             elif name in global_dict:
-                branches.add(7)
+                
                 obj = global_dict[name]
                 if isinstance(obj, (Basic, type)) or callable(obj):
-                    branches.add(8)
+                    
                     result.append((NAME, name))
                     continue
-                else:
-                    branches.add(9)
-            else:
-                branches.add(10)
 
             result.extend([
                 (NAME, 'Symbol' if nextTokVal != '(' else 'Function'),
@@ -661,14 +615,10 @@ def auto_symbol(tokens, local_dict, global_dict):
                 (OP, ')'),
             ])
         else:
-            branches.add(11)
             result.append((tokNum, tokVal))
 
         prevTok = (tokNum, tokVal)
-    branches.add(12)
-    for x in branches:
-        total_branches[x] = x
-    print(total_branches)
+  
     return result
 
 
