@@ -85,7 +85,7 @@ def are_coplanar(*e):
 
             for x in branches:
                 total_branches[x] = x
-            print(total_branches)
+          #  print(total_branches)
 
             return all(p.is_coplanar(i) for p in e)
 
@@ -97,7 +97,7 @@ def are_coplanar(*e):
 
             for x in branches:
                 total_branches[x] = x
-            print(total_branches)
+        #    print(total_branches)
 
             return False
 
@@ -115,7 +115,7 @@ def are_coplanar(*e):
 
             for x in branches:
                 total_branches[x] = x
-            print(total_branches)
+         #   print(total_branches)
             return False
         else:
             # define a plane
@@ -126,11 +126,11 @@ def are_coplanar(*e):
                     branches.add(7)
                     for x in branches:
                         total_branches[x] = x
-                    print(total_branches)
+          #          print(total_branches)
                     return False
             for x in branches:
                 total_branches[x] = x
-            print(total_branches)
+           # print(total_branches)
             return True
     else:
         pt3d = []
@@ -152,7 +152,7 @@ def are_coplanar(*e):
         for x in branches:
             total_branches[x] = x
 
-        print(total_branches)
+        #print(total_branches)
 
         return are_coplanar(*pt3d)
 

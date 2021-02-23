@@ -732,8 +732,15 @@ class Polygon(GeometrySet):
         [1] http://paulbourke.net/geometry/polygonmesh/#insidepoly
 
         """
+
+        branches = {0}
+        total_branches = [0,0,0,0,0,0,0,0,0,0,0,0]
+        branches.add(1)
+
         p = Point(p, dim=2)
         if p in self.vertices or any(p in s for s in self.sides):
+            # --- NOT REACHED ---
+            branches.add(2)
             return False
 
         # move to p, checking that the result is numeric
@@ -741,6 +748,8 @@ class Polygon(GeometrySet):
         for v in self.vertices:
             lit.append(v - p)  # the difference is simplified
             if lit[-1].free_symbols:
+                # --- NOT REACHED ---
+                branches.add(3)
                 return None
 
         poly = Polygon(*lit)
@@ -752,14 +761,20 @@ class Polygon(GeometrySet):
         indices = list(range(-len(args), 1))
 
         if poly.is_convex():
+            # --- NOT REACHED ---
+            branches.add(4)
             orientation = None
             for i in indices:
                 a = args[i]
                 b = args[i + 1]
                 test = ((-a.y)*(b.x - a.x) - (-a.x)*(b.y - a.y)).is_negative
                 if orientation is None:
+                    # --- NOT REACHED ---
+                    branches.add(5)
                     orientation = test
                 elif test is not orientation:
+                    # --- NOT REACHED ---
+                    branches.add(6)
                     return False
             return True
 
@@ -768,13 +783,23 @@ class Polygon(GeometrySet):
         for i in indices[1:]:
             p2x, p2y = args[i].args
             if 0 > min(p1y, p2y):
+                branches.add(7)
                 if 0 <= max(p1y, p2y):
+                    branches.add(8)
                     if 0 <= max(p1x, p2x):
+                        branches.add(9)
                         if p1y != p2y:
+                            branches.add(10)
                             xinters = (-p1y)*(p2x - p1x)/(p2y - p1y) + p1x
                             if p1x == p2x or 0 <= xinters:
+                                branches.add(11)
                                 hit_odd = not hit_odd
             p1x, p1y = p2x, p2y
+
+        for x in branches:
+            total_branches[x] = x
+        #print(total_branches)
+
         return hit_odd
 
     def arbitrary_point(self, parameter='t'):

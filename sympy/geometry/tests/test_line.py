@@ -685,6 +685,10 @@ def test_projection():
 
     r1 = Ray(Point(1, 1), Point(2, 2))
 
+    #p4 = (-x1, x1)
+
+    #assert l1.projection(p4) == p1
+
     assert Line(Point(x1, x1), Point(y1, y1)).projection(Point(y1, y1)) == Point(y1, y1)
     assert Line(Point(x1, x1), Point(x1, 1 + x1)).projection(Point(1, 1)) == Point(x1, 1)
     assert Segment(Point(-2, 2), Point(0, 4)).projection(r1) == Segment(Point(-1, 3), Point(0, 4))

@@ -947,7 +947,10 @@ class LinearEntity(GeometrySet):
         Segment3D(Point3D(10/3, 10/3, 13/3), Point3D(5, 5, 6))
 
         """
+
+
         if not isinstance(other, GeometryEntity):
+            print("tja")
             other = Point(other, dim=self.ambient_dimension)
 
         def proj_point(p):

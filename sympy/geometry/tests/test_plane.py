@@ -2,7 +2,7 @@ from sympy import Dummy, S, symbols, pi, sqrt, asin, sin, cos, Rational
 from sympy.geometry import Line, Point, Ray, Segment, Point3D, Line3D, Ray3D, Segment3D, Plane, Circle
 from sympy.geometry.util import are_coplanar
 from sympy.testing.pytest import raises
-
+import pytest
 
 def test_plane():
     x, y, z, u, v = symbols('x y z u v', real=True)
@@ -262,3 +262,11 @@ def test_parameter_value():
     raises(ValueError, lambda: p.parameter_value((1, 0, 0), t))
     raises(ValueError, lambda: p.parameter_value(Line(Point(0, 0), Point(1, 1)), t))
     raises(ValueError, lambda: p.parameter_value((0, -3, 2), t, 1))
+
+def test_enhancement_is_coplanar():
+    # test DD2480
+    o = Line3D(Point3D(0,3,2), Point3D(2,3,4))
+    p = Plane((0,0,0), (1,1,1))
+
+    with pytest.raises(TypeError):
+        p.is_coplanar(o)
