@@ -20,7 +20,6 @@ from sympy.utilities.misc import filldedent, func_name
 def _token_splittable(token):
     """
     Predicate for whether a token name can be split into multiple tokens.
-
     A token is splittable if it does not contain an underscore character and
     it is not the name of a Greek letter. This is used to implicitly convert
     expressions like 'xyz' into 'x*y*z'.
@@ -40,7 +39,6 @@ def _token_splittable(token):
 def _token_callable(token, local_dict, global_dict, nextToken=None):
     """
     Predicate for whether a token name represents a callable function.
-
     Essentially wraps ``callable``, but looks up the token name in the
     locals and globals.
     """
@@ -81,7 +79,6 @@ def _add_factorial_tokens(name, result):
 class AppliedFunction:
     """
     A group of tokens representing a function and its arguments.
-
     `exponent` is for handling the shorthand sin^2, ln^2, etc.
     """
     def __init__(self, function, args, exponent=None):
@@ -125,9 +122,7 @@ def _flatten(result):
 def _group_parentheses(recursor):
     def _inner(tokens, local_dict, global_dict):
         """Group tokens between parentheses with ParenthesisGroup.
-
         Also processes those tokens recursively.
-
         """
         result = []
         stacks = []
@@ -168,10 +163,8 @@ def _group_parentheses(recursor):
 
 def _apply_functions(tokens, local_dict, global_dict):
     """Convert a NAME token + ParenthesisGroup into an AppliedFunction.
-
     Note that ParenthesisGroups, if not applied to any function, are
     converted back into lists of tokens.
-
     """
     result = []
     symbol = None
@@ -193,19 +186,12 @@ def _apply_functions(tokens, local_dict, global_dict):
 
 def _implicit_multiplication(tokens, local_dict, global_dict):
     """Implicitly adds '*' tokens.
-
     Cases:
-
     - Two AppliedFunctions next to each other ("sin(x)cos(x)")
-
     - AppliedFunction next to an open parenthesis ("sin x (cos x + 1)")
-
     - A close parenthesis next to an AppliedFunction ("(x+2)sin x")\
-
     - A close parenthesis next to an open parenthesis ("(x+2)(x+3)")
-
     - AppliedFunction next to an implicitly applied function ("sin(x)cos x")
-
     """
     result = []
     for tok, nextTok in zip(tokens, tokens[1:]):
@@ -258,6 +244,7 @@ def _implicit_multiplication(tokens, local_dict, global_dict):
 def _implicit_application(tokens, local_dict, global_dict):
     """Adds parentheses as needed after functions."""
     branches = {0}
+    print("_implicit_application")
     total_branches =[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     result = []
     appendParen = 0  # number of closing parentheses to add
@@ -345,10 +332,8 @@ def _implicit_application(tokens, local_dict, global_dict):
 
 def function_exponentiation(tokens, local_dict, global_dict):
     """Allows functions to be exponentiated, e.g. ``cos**2(x)``.
-
     Examples
     ========
-
     >>> from sympy.parsing.sympy_parser import (parse_expr,
     ... standard_transformations, function_exponentiation)
     >>> transformations = standard_transformations + (function_exponentiation,)
@@ -357,12 +342,13 @@ def function_exponentiation(tokens, local_dict, global_dict):
     """
     branches = {0}
     branches.add(1)
+    print("function_exponentiation")
     total_branches = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     result = []
     exponent = []
     consuming_exponent = False
     level = 0
-    
+
     for tok, nextTok in zip(tokens, tokens[1:]):
         branches.add(2)
         if tok[0] == NAME and nextTok[0] == OP and nextTok[1] == '**':
@@ -437,13 +423,9 @@ def function_exponentiation(tokens, local_dict, global_dict):
 
 def split_symbols_custom(predicate):
     """Creates a transformation that splits symbol names.
-
     ``predicate`` should return True if the symbol name is to be split.
-
     For instance, to retain the default behavior but avoid splitting certain
     symbol names, a predicate like this would work:
-
-
     >>> from sympy.parsing.sympy_parser import (parse_expr, _token_splittable,
     ... standard_transformations, implicit_multiplication,
     ... split_symbols_custom)
@@ -527,13 +509,10 @@ split_symbols = split_symbols_custom(_token_splittable)
 
 def implicit_multiplication(result, local_dict, global_dict):
     """Makes the multiplication operator optional in most cases.
-
     Use this before :func:`implicit_application`, otherwise expressions like
     ``sin 2x`` will be parsed as ``x * sin(2)`` rather than ``sin(2*x)``.
-
     Examples
     ========
-
     >>> from sympy.parsing.sympy_parser import (parse_expr,
     ... standard_transformations, implicit_multiplication)
     >>> transformations = standard_transformations + (implicit_multiplication,)
@@ -552,14 +531,11 @@ def implicit_multiplication(result, local_dict, global_dict):
 
 def implicit_application(result, local_dict, global_dict):
     """Makes parentheses optional in some cases for function calls.
-
     Use this after :func:`implicit_multiplication`, otherwise expressions
     like ``sin 2x`` will be parsed as ``x * sin(2)`` rather than
     ``sin(2*x)``.
-
     Examples
     ========
-
     >>> from sympy.parsing.sympy_parser import (parse_expr,
     ... standard_transformations, implicit_application)
     >>> transformations = standard_transformations + (implicit_application,)
@@ -577,26 +553,19 @@ def implicit_application(result, local_dict, global_dict):
 
 def implicit_multiplication_application(result, local_dict, global_dict):
     """Allows a slightly relaxed syntax.
-
     - Parentheses for single-argument method calls are optional.
-
     - Multiplication is implicit.
-
     - Symbol names can be split (i.e. spaces are not needed between
       symbols).
-
     - Functions can be exponentiated.
-
     Examples
     ========
-
     >>> from sympy.parsing.sympy_parser import (parse_expr,
     ... standard_transformations, implicit_multiplication_application)
     >>> parse_expr("10sin**2 x**2 + 3xyz + tan theta",
     ... transformations=(standard_transformations +
     ... (implicit_multiplication_application,)))
     3*x*y*z + 10*sin(x**2)**2 + tan(theta)
-
     """
     for step in (split_symbols, implicit_multiplication,
                  implicit_application, function_exponentiation):
@@ -610,6 +579,7 @@ def auto_symbol(tokens, local_dict, global_dict):
     result = []
     prevTok = (None, None)
     branches = {0}
+    print("auto_symbol")
     total_branches = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     branches.add(1)
     tokens.append((None, None))  # so zip traverses all tokens
@@ -676,7 +646,6 @@ def lambda_notation(tokens, local_dict, global_dict):
     """Substitutes "lambda" with its Sympy equivalent Lambda().
     However, the conversion doesn't take place if only "lambda"
     is passed because that is a syntax error.
-
     """
     result = []
     flag = False
@@ -754,9 +723,7 @@ def convert_xor(tokens, local_dict, global_dict):
 def repeated_decimals(tokens, local_dict, global_dict):
     """
     Allows 0.2[1] notation to represent the repeated decimal 0.2111... (19/90)
-
     Run this before auto_number.
-
     """
     result = []
 
@@ -845,10 +812,8 @@ def repeated_decimals(tokens, local_dict, global_dict):
 def auto_number(tokens, local_dict, global_dict):
     """
     Converts numeric literals to use SymPy equivalents.
-
     Complex numbers use ``I``, integer literals use ``Integer``, and float
     literals use ``Float``.
-
     """
     result = []
 
@@ -897,17 +862,13 @@ def rationalize(tokens, local_dict, global_dict):
 
 def _transform_equals_sign(tokens, local_dict, global_dict):
     """Transforms the equals sign ``=`` to instances of Eq.
-
     This is a helper function for `convert_equals_signs`.
     Works with expressions containing one equals sign and no
     nesting. Expressions like `(1=2)=False` won't work with this
     and should be used with `convert_equals_signs`.
-
     Examples: 1=2     to Eq(1,2)
               1*2=x   to Eq(1*2, x)
-
     This does not deal with function arguments yet.
-
     """
     result = []
     if (OP, "=") in tokens:
@@ -926,22 +887,17 @@ def _transform_equals_sign(tokens, local_dict, global_dict):
 
 def convert_equals_signs(result, local_dict, global_dict):
     """ Transforms all the equals signs ``=`` to instances of Eq.
-
     Parses the equals signs in the expression and replaces them with
     appropriate Eq instances.Also works with nested equals signs.
-
     Does not yet play well with function arguments.
     For example, the expression `(x=y)` is ambiguous and can be interpreted
     as x being an argument to a function and `convert_equals_signs` won't
     work for this.
-
     See also
     ========
     convert_equality_operators
-
     Examples
     ========
-
     >>> from sympy.parsing.sympy_parser import (parse_expr,
     ... standard_transformations, convert_equals_signs)
     >>> parse_expr("1*2=x", transformations=(
@@ -950,7 +906,6 @@ def convert_equals_signs(result, local_dict, global_dict):
     >>> parse_expr("(1*2=x)=False", transformations=(
     ... standard_transformations + (convert_equals_signs,)))
     Eq(Eq(2, x), False)
-
     """
     for step in (_group_parentheses(convert_equals_signs),
                   _apply_functions,
@@ -971,7 +926,6 @@ standard_transformations = (lambda_notation, auto_symbol, repeated_decimals, aut
 def stringify_expr(s, local_dict, global_dict, transformations):
     """
     Converts the string ``s`` to Python code, in ``local_dict``
-
     Generally, ``parse_expr`` should be used.
     """
 
@@ -989,7 +943,6 @@ def stringify_expr(s, local_dict, global_dict, transformations):
 def eval_expr(code, local_dict, global_dict):
     """
     Evaluate Python code generated by ``stringify_expr``.
-
     Generally, ``parse_expr`` should be used.
     """
     expr = eval(
@@ -1001,36 +954,28 @@ def eval_expr(code, local_dict, global_dict):
 def parse_expr(s, local_dict=None, transformations=standard_transformations,
                global_dict=None, evaluate=True):
     """Converts the string ``s`` to a SymPy expression, in ``local_dict``
-
     Parameters
     ==========
-
     s : str
         The string to parse.
-
     local_dict : dict, optional
         A dictionary of local variables to use when parsing.
-
     global_dict : dict, optional
         A dictionary of global variables. By default, this is initialized
         with ``from sympy import *``; provide this parameter to override
         this behavior (for instance, to parse ``"Q & S"``).
-
     transformations : tuple, optional
         A tuple of transformation functions used to modify the tokens of the
         parsed expression before evaluation. The default transformations
         convert numeric literals into their SymPy equivalents, convert
         undefined variables into SymPy symbols, and allow the use of standard
         mathematical factorial notation (e.g. ``x!``).
-
     evaluate : bool, optional
         When False, the order of the arguments will remain as they were in the
         string and automatic simplification that would normally occur is
         suppressed. (see examples)
-
     Examples
     ========
-
     >>> from sympy.parsing.sympy_parser import parse_expr
     >>> parse_expr("1/2")
     1/2
@@ -1042,15 +987,11 @@ def parse_expr(s, local_dict=None, transformations=standard_transformations,
     ...     (implicit_multiplication_application,))
     >>> parse_expr("2x", transformations=transformations)
     2*x
-
     When evaluate=False, some automatic simplifications will not occur:
-
     >>> parse_expr("2**3"), parse_expr("2**3", evaluate=False)
     (8, 2**3)
-
     In addition the order of the arguments will not be made canonical.
     This feature allows one to tell exactly how the expression was entered:
-
     >>> a = parse_expr('1 + x', evaluate=False)
     >>> b = parse_expr('x + 1', evaluate=0)
     >>> a == b
@@ -1059,13 +1000,10 @@ def parse_expr(s, local_dict=None, transformations=standard_transformations,
     (1, x)
     >>> b.args
     (x, 1)
-
     See Also
     ========
-
     stringify_expr, eval_expr, standard_transformations,
     implicit_multiplication_application
-
     """
 
     if local_dict is None:
