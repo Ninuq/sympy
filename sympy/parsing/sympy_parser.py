@@ -257,77 +257,52 @@ def _implicit_multiplication(tokens, local_dict, global_dict):
 
 def _implicit_application(tokens, local_dict, global_dict):
     """Adds parentheses as needed after functions."""
-   
+    result = []
     appendParen = 0  # number of closing parentheses to add
     skip = 0  # number of tokens to delay before adding a ')' (to
               # capture **, ^, etc.)
     exponentSkip = False  # skipping tokens before inserting parentheses to
                           # work with function exponentiation
-
     for tok, nextTok in zip(tokens, tokens[1:]):
         result.append(tok)
         if (tok[0] == NAME and nextTok[0] not in [OP, ENDMARKER, NEWLINE]):
-           
             if _token_callable(tok, local_dict, global_dict, nextTok):
-             
                 result.append((OP, '('))
                 appendParen += 1
-            else:
-               
         # name followed by exponent - function exponentiation
         elif (tok[0] == NAME and nextTok[0] == OP and nextTok[1] == '**'):
-            
             if _token_callable(tok, local_dict, global_dict):
-                
                 exponentSkip = True
-        
         elif exponentSkip:
-         
             # if the last token added was an applied function (i.e. the
             # power of the function exponent) OR a multiplication (as
             # implicit multiplication would have added an extraneous
             # multiplication)
             if (isinstance(tok, AppliedFunction)
                 or (tok[0] == OP and tok[1] == '*')):
-         
                 # don't add anything if the next token is a multiplication
                 # or if there's already a parenthesis (if parenthesis, still
                 # stop skipping tokens)
                 if not (nextTok[0] == OP and nextTok[1] == '*'):
-                   
                     if not(nextTok[0] == OP and nextTok[1] == '('):
-                      
                         result.append((OP, '('))
                         appendParen += 1
-                                       
                     exponentSkip = False
-                
-                    
         elif appendParen:
-            
             if nextTok[0] == OP and nextTok[1] in ('^', '**', '*'):
                 skip = 1
-            
                 continue
-            
             if skip:
-            
                 skip -= 1
                 continue
-            
             result.append((OP, ')'))
             appendParen -= 1
-        
 
     if tokens:
-        
         result.append(tokens[-1])
 
-
     if appendParen:
-
         result.extend([(OP, ')')] * appendParen)
-
     return result
 
 
@@ -343,65 +318,42 @@ def function_exponentiation(tokens, local_dict, global_dict):
     >>> parse_expr('sin**4(x)', transformations=transformations)
     sin(x)**4
     """
-
     result = []
     exponent = []
     consuming_exponent = False
     level = 0
-    
     for tok, nextTok in zip(tokens, tokens[1:]):
-        
         if tok[0] == NAME and nextTok[0] == OP and nextTok[1] == '**':
-        
             if _token_callable(tok, local_dict, global_dict):
-        
                 consuming_exponent = True
         elif consuming_exponent:
-        
             if tok[0] == NAME and tok[1] == 'Function':
-        
                 tok = (NAME, 'Symbol')
-        
             exponent.append(tok)
 
             # only want to stop after hitting )
             if tok[0] == nextTok[0] == OP and tok[1] == ')' and nextTok[1] == '(':
-        
                 consuming_exponent = False
-        
-        
             # if implicit multiplication was used, we may have )*( instead
             if tok[0] == nextTok[0] == OP and tok[1] == '*' and nextTok[1] == '(':
                 consuming_exponent = False
                 del exponent[-1]
-        
             continue
         elif exponent and not consuming_exponent:
-        
             if tok[0] == OP:
-        
                 if tok[1] == '(':
-        
                     level += 1
                 elif tok[1] == ')':
-        
                     level -= 1
-         
             if level == 0:
-         
                 result.append(tok)
                 result.extend(exponent)
                 exponent = []
                 continue
-         
-        
         result.append(tok)
     if tokens:
-        
         result.append(tokens[-1])
-    
     if exponent:
-    
         result.extend(exponent)
     return result
 
@@ -580,14 +532,12 @@ def auto_symbol(tokens, local_dict, global_dict):
     """Inserts calls to ``Symbol``/``Function`` for undefined variables."""
     result = []
     prevTok = (None, None)
-    
+
     tokens.append((None, None))  # so zip traverses all tokens
     for tok, nextTok in zip(tokens, tokens[1:]):
-       
         tokNum, tokVal = tok
         nextTokNum, nextTokVal = nextTok
         if tokNum == NAME:
-           
             name = tokVal
 
             if (name in ['True', 'False', 'None']
@@ -597,28 +547,22 @@ def auto_symbol(tokens, local_dict, global_dict):
                 # Don't convert keyword arguments
                 or (prevTok[0] == OP and prevTok[1] in ('(', ',')
                     and nextTokNum == OP and nextTokVal == '=')):
-               
                 result.append((NAME, name))
                 continue
             elif name in local_dict:
                 if isinstance(local_dict[name], Symbol) and nextTokVal == '(':
-                  
                     result.extend([(NAME, 'Function'),
                                    (OP, '('),
                                    (NAME, repr(str(local_dict[name]))),
                                    (OP, ')')])
                 else:
-                
                     result.append((NAME, name))
                 continue
             elif name in global_dict:
-               
                 obj = global_dict[name]
                 if isinstance(obj, (Basic, type)) or callable(obj):
-                 
                     result.append((NAME, name))
                     continue
-            
 
             result.extend([
                 (NAME, 'Symbol' if nextTokVal != '(' else 'Function'),
@@ -627,10 +571,10 @@ def auto_symbol(tokens, local_dict, global_dict):
                 (OP, ')'),
             ])
         else:
-          
             result.append((tokNum, tokVal))
 
         prevTok = (tokNum, tokVal)
+
     return result
 
 
