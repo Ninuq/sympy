@@ -1215,13 +1215,25 @@ class Polygon(GeometrySet):
         point2 = e1_connections[e1_ymax][1]
         angle1 = support_line.angle_between(Line(e1_ymax, point1))
         angle2 = support_line.angle_between(Line(e1_ymax, point2))
+        print("e1_ymax, ", e1_ymax)
+        print("point1, ", point1)
+        print("point2 ", point2)
+        print("1:",Point.distance(e1_ymax, point1))
+        print("2:",Point.distance(e1_ymax, point2))
+        print("angle1", angle1)
+        print("angle2", angle2)
+        print("\n")
         if angle1 < angle2:
             e1_next = point1
+            print("a")
         elif angle2 < angle1:
             e1_next = point2
+            print("b")
         elif Point.distance(e1_ymax, point1) > Point.distance(e1_ymax, point2):
+            print("c")
             e1_next = point2
         else:
+            print("d")
             e1_next = point1
 
         point1 = e2_connections[e2_ymin][0]

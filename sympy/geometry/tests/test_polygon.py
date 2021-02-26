@@ -673,3 +673,9 @@ def test_do_poly_distance():
     with warns(UserWarning, \
                match="Polygons may intersect producing erroneous output"):
         assert triangle2._do_poly_distance(square1) == 0
+
+
+    square2 = Polygon (Point(0, 0), Point(0, 1), Point(0.9, 1), Point(1, -0.5))
+    triangle2 = Polygon(Point(1, 2), Point(2, 2), Point(2, 0.5))
+    print("this is the assertion:")
+    assert square2._do_poly_distance(triangle2) != sqrt(2)/2

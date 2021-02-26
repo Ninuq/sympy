@@ -138,20 +138,20 @@ def test_are_coplanar():
     c = Line3D(Point3D(0, -1, 0), Point3D(5, -1, 9))
     d = Line(Point2D(0, 3), Point2D(1, 5))
 
-    # helena test case 1: plane
+    # test case 1: plane
     e = Plane(Point3D(1, 1, 1), Point3D(2, 3, 4), Point3D(2, 2, 2))
     f = Plane(Point3D(1, 1, 1), Point3D(2, 3, 6), Point3D(2, 2, 2))
 
-    # helena test case 2:
+    # test case 2:
     g = Point3D(1,2,3)
     h = Point3D(7,2,-2)
 
-    # helena test case 3: A case where two points are colinear
+    # test case 3: A case where two points are colinear
     i = Point3D(0,1,1)
     j = Point3D(0,1,6)
     k = Point3D(0,1,-2)
 
-    # helena test case 4: A case where we don't only have 3D points
+    # test case 4: A case where we don't only have 3D points
     l = Point3D(5, 0, 0)
     m = Point3D(1, -1,1)
     n = Point2D(0,2)
@@ -161,14 +161,14 @@ def test_are_coplanar():
     assert are_coplanar(a, d) == False
 
 
-    # helena test case 1: increases coverage (reaches branch 2 now)
+    # test case 1: increases coverage (reaches branch 2 now)
     assert are_coplanar(e,f) == False
 
-    # helena test case 2: increase coverage (reaches branch 3 and 4 now)
+    # test case 2: increase coverage (reaches branch 3 and 4 now)
     assert are_coplanar(g,h) == False
 
-    # helena test case 3: increases coverage (reaches branch 5 and 6 now)
+    # test case 3: increases coverage (reaches branch 5 and 6 now)
     assert are_coplanar(i,j,k) == False
 
-    # helena test case 4: increases coverage (reaches branch 8 now)
+    # test case 4: increases coverage (reaches branch 8 now)
     assert are_coplanar(l, m, n) == False

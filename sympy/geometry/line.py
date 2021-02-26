@@ -950,7 +950,6 @@ class LinearEntity(GeometrySet):
 
 
         if not isinstance(other, GeometryEntity):
-            print("tja")
             other = Point(other, dim=self.ambient_dimension)
 
         def proj_point(p):
